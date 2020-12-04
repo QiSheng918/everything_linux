@@ -16,11 +16,10 @@ signals:
     void showSettings();
     void quit();
     void showMainwindow();
-
-private slots:
     void updateDatabase();
-    // 添加菜单项
 
+    
+    
 
 private:
     void initActions();

@@ -27,15 +27,10 @@ void TrayMenu::initActions()
     addSeparator();
     addAction(m_pQuitAction);
 
-    connect(m_pUpdateAction, SIGNAL(triggered(bool)), this, SLOT(updateDatabase()));
+    connect(m_pUpdateAction, SIGNAL(triggered(bool)), this, SIGNAL(updateDatabase()));
     connect(m_pQuitAction, SIGNAL(triggered(bool)), this, SIGNAL(quit()));
     connect(m_pShowMainwindowAction, SIGNAL(triggered(bool)), this, SIGNAL(showMainwindow()));
     
 }
 
 
-void TrayMenu::updateDatabase(){
-    // QString cmd = "sh ../shell_scripts/update_everything_database.sh";
-    QString cmd = "echo \"ss\" | sudo  -S  ./everything_updatedb";
-    system(cmd.toLocal8Bit().data());
-}

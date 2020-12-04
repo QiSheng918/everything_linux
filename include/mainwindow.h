@@ -50,6 +50,8 @@ public slots:
     void openFilePath();
     void copyFullPath();
     void closeEvent(QCloseEvent *e);  //--关闭事件
+    void showMainwindow();
+    void updateDatabase();
 
 private:
     void setupUi();

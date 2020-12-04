@@ -7,12 +7,11 @@
 #include <QScreen>
 #include <QTime>
 #include <QHeaderView>
-
+#include <QMessageBox>
 
 #define Debug
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), m_sourceModel()
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_sourceModel()
 {
     setupUi();
     setWindowIcon(QIcon(":/everything_linux"));
@@ -20,8 +19,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(strDbName);
-    file_qk = new QHotkey(QKeySequence("ctrl+j"), true);
 
+    file_qk = new QHotkey(QKeySequence("ctrl+j"), true);
     connect(file_qk, SIGNAL(activated()), this, SLOT(show()));
 
     close_qk = new QHotkey(QKeySequence("ctrl+w"), false);
@@ -33,11 +32,10 @@ MainWindow::MainWindow(QWidget *parent) :
     pSystemTray->setToolTip("Everything_linux");
     pSystemTray->setIcon(QIcon(":/everything_linux"));
 
-
-//    connect(pTrayMenu, SIGNAL(showSettings()), this, SLOT(showSettings()));
+    connect(pTrayMenu, SIGNAL(updateDatabase()), this, SLOT(updateDatabase()));
     connect(pTrayMenu, SIGNAL(quit()), qApp, SLOT(quit()));
-//    connect(pTrayMenu, SIGNAL(showMainwindow()), this, SLOT(showMainwindow()));
-//    connect(pSystemTray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
+    connect(pTrayMenu, SIGNAL(showMainwindow()), this, SLOT(showMainwindow()));
+    // connect(pSystemTray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(showMainwindow()));
 
     pSystemTray->show();
 
@@ -46,6 +44,10 @@ MainWindow::MainWindow(QWidget *parent) :
         loadSettings(1);
         initTable();
     }
+    // else
+    // {
+    //     QMessageBox::information(nullptr, "错误", "can't open the database");
+    // }
 }
 
 MainWindow::~MainWindow()
@@ -55,8 +57,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupUi()
 {
-    scale_factor=QGuiApplication::primaryScreen()->geometry().width() / 1920.0;
-    this->resize(int(1000*scale_factor), int(750*scale_factor));
+    scale_factor = QGuiApplication::primaryScreen()->geometry().width() / 1920.0;
+    this->resize(int(1000 * scale_factor), int(750 * scale_factor));
     this->centralWidget = new QWidget(this);
 
     this->verticalLayout = new QVBoxLayout(centralWidget);
@@ -73,17 +75,15 @@ void MainWindow::setupUi()
 
     this->verticalLayout->addLayout(horizontalLayout);
 
-
     this->tabview_horizontalLayout = new QHBoxLayout();
     this->tabview_horizontalLayout->setSpacing(3);
     this->tableView = new CTableView(centralWidget);
 
     this->tableView->setObjectName(QString::fromUtf8("tableView"));
     this->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-//    this->tableView->horizontalHeader()->set
+    //    this->tableView->horizontalHeader()->set
     this->tabview_horizontalLayout->addWidget(tableView);
     this->verticalLayout->addLayout(tabview_horizontalLayout);
-
 
     this->setCentralWidget(centralWidget);
 
@@ -98,6 +98,21 @@ void MainWindow::setupUi()
 
     /* connect slots by OBJECT name */
     QMetaObject::connectSlotsByName(this);
+}
+
+void MainWindow::showMainwindow()
+{
+    this->show();
+    if (windowState() != Qt::WindowActive)
+    {
+        setWindowState(Qt::WindowActive); //正常化父窗体
+    }
+    //延时等待父窗体正常化 延时250毫秒
+    QTime _Timer = QTime::currentTime().addMSecs(250);
+    while (QTime::currentTime() < _Timer)
+    {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+    }
 }
 
 bool MainWindow::reConnectDb()
@@ -131,12 +146,13 @@ bool MainWindow::initTable()
     m_sourceModel->setHeaderData(3, Qt::Horizontal, "Data Modified");
 
     tableView->setModel(m_sourceModel);
-//    tableView->setSizeAdjustPolicy();
-//    tableView->setColumnWidth(0, int(150*scale_factor));
-//    tableView->setColumnWidth(1, int(300*scale_factor));
-//    tableView->setColumnWidth(2, int(100*scale_factor));
-//    tableView->setColumnWidth(3, int(200*scale_factor));
-    tableView->setStyleSheet("QTableView{border-style: none}" "QTableView::item:selected{background: rgb(51,153,255)}");
+    //    tableView->setSizeAdjustPolicy();
+    //    tableView->setColumnWidth(0, int(150*scale_factor));
+    //    tableView->setColumnWidth(1, int(300*scale_factor));
+    //    tableView->setColumnWidth(2, int(100*scale_factor));
+    //    tableView->setColumnWidth(3, int(200*scale_factor));
+    tableView->setStyleSheet("QTableView{border-style: none}"
+                             "QTableView::item:selected{background: rgb(51,153,255)}");
 
     connect(tableView, SIGNAL(hoverRowChanged(int)), m_sourceModel, SLOT(setHoverRow(int)));
 
@@ -147,7 +163,7 @@ bool MainWindow::initTable()
     return true;
 }
 
-void MainWindow::on_tableView_doubleClicked(const QModelIndex & index)
+void MainWindow::on_tableView_doubleClicked(const QModelIndex &index)
 {
     m_showContextRow = index.row();
     openFile();
@@ -155,8 +171,7 @@ void MainWindow::on_tableView_doubleClicked(const QModelIndex & index)
 
 void MainWindow::openFile()
 {
-    QString cmd = "xdg-open " + tableView->model()->index(m_showContextRow, 1).data().toString() + "/"
-        + tableView->model()->index(m_showContextRow, 0).data().toString();
+    QString cmd = "xdg-open " + tableView->model()->index(m_showContextRow, 1).data().toString() + "/" + tableView->model()->index(m_showContextRow, 0).data().toString();
     if (system(cmd.toLocal8Bit().data()) != 0)
     {
         QMessageBox::warning(this, "Error opening", "No application is registered as handling this file");
@@ -215,7 +230,7 @@ bool MainWindow::loadSettings(bool loadDefault)
     }
 }
 
-void MainWindow::setTitle(const QString& text)
+void MainWindow::setTitle(const QString &text)
 {
     if (text.isEmpty())
     {
@@ -227,7 +242,7 @@ void MainWindow::setTitle(const QString& text)
     }
 }
 
-void MainWindow::setFilter(const QString& text)
+void MainWindow::setFilter(const QString &text)
 {
     //    m_sourceModel->setQuery(strSelectSQL+" WHERE name LIKE '%" + text + "%' ORDER BY name");
     //    m_proxyModel->setFilterRegExp(QRegExp(text, Qt::CaseInsensitive));
@@ -259,8 +274,8 @@ void MainWindow::setFilter(const QString& text)
 void MainWindow::on_keywordEdit_textChanged()
 {
 #ifdef Debug
-    qDebug()<<keywordEdit->text();
-    #endif
+    qDebug() << keywordEdit->text();
+#endif
 
     setTitle(keywordEdit->text());
     setFilter(keywordEdit->text());
@@ -274,7 +289,7 @@ void MainWindow::reloadModel()
     reConnectDb();
     loadSettings(1);
     initTable();
-    m_sourceModel->setQuery(strSelectSQL + strOrderByNm,m_db);
+    m_sourceModel->setQuery(strSelectSQL + strOrderByNm, m_db);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -291,4 +306,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
     event->ignore();
     this->hide();
+}
+
+void MainWindow::updateDatabase(){
+    QString cmd = "echo \"ss\" | sudo  -S  ./everything_updatedb";
+    system(cmd.toLocal8Bit().data());
 }
