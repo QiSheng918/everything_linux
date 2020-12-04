@@ -17,13 +17,14 @@ signals:
     void quit();
     void showMainwindow();
 
-private:
+private slots:
+    void updateDatabase();
     // 添加菜单项
-    void initActions();
+
 
 private:
-//    QAction *m_pShowAction;
-    QAction *m_pSettingAction;
+    void initActions();
+    QAction *m_pUpdateAction;
     QAction *m_pQuitAction;
     QAction *m_pShowMainwindowAction;
 };

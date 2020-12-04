@@ -12,12 +12,47 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Qt5 COMPONENTS Widgets Core Gui Sql REQUIRED)
 
 
-INCLUDE_DIRECTORIES(
-  #  QHotkey/
-   include/
-   ${PROJECT_SOURCE_DIR}
-   ${QT5_INCLUDE_DIRS} 
+find_path(SQLITE3_INCLUDE_DIR sqlite3.h
+  /usr/include
+  /usr/local/include
+  $ENV{ProgramFiles}/SQLite/include
+  $ENV{SystemDrive}/SQLite/include
+  $ENV{ProgramFiles}/SQLite
+  $ENV{SystemDrive}/SQLite
+  $ENV{ProgramFiles}/SQLite3/include
+  $ENV{SystemDrive}/SQLite3/include
+  $ENV{ProgramFiles}/SQLite3
+  $ENV{SystemDrive}/SQLite3
 )
+
+find_library(SQLITE3_LIBRARIES NAMES sqlite3
+  PATHS
+  /usr/lib
+  /usr/local/lib
+  $ENV{ProgramFiles}/SQLite/lib
+  $ENV{SystemDrive}/SQLite/lib
+  $ENV{ProgramFiles}/SQLite
+  $ENV{SystemDrive}/SQLite
+  $ENV{ProgramFiles}/SQLite3/lib
+  $ENV{SystemDrive}/SQLite3/lib
+  $ENV{ProgramFiles}/SQLite3
+  $ENV{SystemDrive}/SQLite3
+)
+
+
+INCLUDE_DIRECTORIES(
+
+  everything_updatedb/
+  everything_updatedb/gnulib
+  include/
+  QHotkey/
+  ${PROJECT_SOURCE_DIR}
+  ${QT5_INCLUDE_DIRS} 
+  ${SQLITE3_INCLUDE_DIR}
+
+)
+
+
 
  set(Q_GLOBALSHOTCUT_LIBS Qt5::Widgets Qt5::Core Qt5::Gui)
  set(Q_GLOBALSHOTCUT_SRC_FILES  QHotkey/qhotkey.cpp)
@@ -81,5 +116,12 @@ target_link_libraries(qmainwindow  Qt5::Widgets
     qglobalshotcut
 )
 
-add_executable(ocr_qt src/main.cpp)
-target_link_libraries(ocr_qt qmainwindow)
+add_executable(everything_linux src/main.cpp)
+target_link_libraries(everything_linux qmainwindow)
+
+
+file(GLOB_RECURSE cpp_files everything_updatedb/*.h everything_updatedb/*.c)
+add_executable(everything_updatedb ${cpp_files})
+target_link_libraries(everything_updatedb ${SQLITE3_LIBRARIES})
+
+# add_executable(everything_updatedb ${cpp_files})
