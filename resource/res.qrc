@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>../IMAGE/windowIcon.png</file>
+        <file alias="everything_linux">../IMAGE/windowIcon.png</file>
     </qresource>
 </RCC>

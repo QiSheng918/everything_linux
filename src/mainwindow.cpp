@@ -1,9 +1,13 @@
 #include "mainwindow.h"
+#include "traymenu.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QClipboard>
 #include <QSqlRecord>
 #include <QScreen>
+#include <QTime>
+#include <QHeaderView>
+
 
 #define Debug
 
@@ -11,11 +15,32 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_sourceModel()
 {
     setupUi();
-    setWindowIcon(QIcon(QPixmap("://windowIcon.png")));
+    setWindowIcon(QIcon(":/everything_linux"));
     m_sourceModel = new CSqlQueryModel;
-    // m_sqlQuery = new QSqlQuery;
+
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(strDbName);
+    file_qk = new QHotkey(QKeySequence("ctrl+j"), true);
+
+    connect(file_qk, SIGNAL(activated()), this, SLOT(show()));
+
+    close_qk = new QHotkey(QKeySequence("ctrl+w"), false);
+    connect(close_qk, SIGNAL(activated()), this, SLOT(hide()));
+
+    pSystemTray = new QSystemTrayIcon(this);
+    TrayMenu *pTrayMenu = new TrayMenu(this);
+    pSystemTray->setContextMenu(pTrayMenu);
+    pSystemTray->setToolTip("Everything_linux");
+    pSystemTray->setIcon(QIcon(":/everything_linux"));
+
+
+//    connect(pTrayMenu, SIGNAL(showSettings()), this, SLOT(showSettings()));
+    connect(pTrayMenu, SIGNAL(quit()), qApp, SLOT(quit()));
+//    connect(pTrayMenu, SIGNAL(showMainwindow()), this, SLOT(showMainwindow()));
+//    connect(pSystemTray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(onActivated(QSystemTrayIcon::ActivationReason)));
+
+    pSystemTray->show();
+
     if (connectDb())
     {
         loadSettings(1);
@@ -31,7 +56,7 @@ MainWindow::~MainWindow()
 void MainWindow::setupUi()
 {
     scale_factor=QGuiApplication::primaryScreen()->geometry().width() / 1920.0;
-    this->resize(int(750*scale_factor), int(500*scale_factor));
+    this->resize(int(1000*scale_factor), int(750*scale_factor));
     this->centralWidget = new QWidget(this);
 
     this->verticalLayout = new QVBoxLayout(centralWidget);
@@ -52,7 +77,10 @@ void MainWindow::setupUi()
     this->tabview_horizontalLayout = new QHBoxLayout();
     this->tabview_horizontalLayout->setSpacing(3);
     this->tableView = new CTableView(centralWidget);
+
     this->tableView->setObjectName(QString::fromUtf8("tableView"));
+    this->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+//    this->tableView->horizontalHeader()->set
     this->tabview_horizontalLayout->addWidget(tableView);
     this->verticalLayout->addLayout(tabview_horizontalLayout);
 
@@ -103,10 +131,11 @@ bool MainWindow::initTable()
     m_sourceModel->setHeaderData(3, Qt::Horizontal, "Data Modified");
 
     tableView->setModel(m_sourceModel);
-    tableView->setColumnWidth(0, int(150*scale_factor));
-    tableView->setColumnWidth(1, int(300*scale_factor));
-    tableView->setColumnWidth(2, int(100*scale_factor));
-    tableView->setColumnWidth(3, int(200*scale_factor));
+//    tableView->setSizeAdjustPolicy();
+//    tableView->setColumnWidth(0, int(150*scale_factor));
+//    tableView->setColumnWidth(1, int(300*scale_factor));
+//    tableView->setColumnWidth(2, int(100*scale_factor));
+//    tableView->setColumnWidth(3, int(200*scale_factor));
     tableView->setStyleSheet("QTableView{border-style: none}" "QTableView::item:selected{background: rgb(51,153,255)}");
 
     connect(tableView, SIGNAL(hoverRowChanged(int)), m_sourceModel, SLOT(setHoverRow(int)));
@@ -246,4 +275,20 @@ void MainWindow::reloadModel()
     loadSettings(1);
     initTable();
     m_sourceModel->setQuery(strSelectSQL + strOrderByNm,m_db);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (windowState() != Qt::WindowMinimized)
+    {
+        setWindowState(Qt::WindowMinimized); //最小化父窗体
+    }
+    //延时等待父窗体最小化 延时250毫秒
+    QTime _Timer = QTime::currentTime().addMSecs(250);
+    while (QTime::currentTime() < _Timer)
+    {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+    }
+    event->ignore();
+    this->hide();
 }

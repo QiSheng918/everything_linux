@@ -19,31 +19,31 @@ INCLUDE_DIRECTORIES(
    ${QT5_INCLUDE_DIRS} 
 )
 
-# set(Q_GLOBALSHOTCUT_LIBS Qt5::Widgets Qt5::Core Qt5::Gui)
-# set(Q_GLOBALSHOTCUT_SRC_FILES  QHotkey/qhotkey.cpp)
+ set(Q_GLOBALSHOTCUT_LIBS Qt5::Widgets Qt5::Core Qt5::Gui)
+ set(Q_GLOBALSHOTCUT_SRC_FILES  QHotkey/qhotkey.cpp)
 
-# MESSAGE(STSTUS "###################################")
-# MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}") 
+ MESSAGE(STSTUS "###################################")
+ MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}")
 
-# IF (WIN32)
-# 	MESSAGE(STATUS "Now is windows")
-#   set(SRC_FILES ${SRC_FILES} QHotkey/qhotkey_win.cpp)
+ IF (WIN32)
+        MESSAGE(STATUS "Now is windows")
+   set(SRC_FILES ${SRC_FILES} QHotkey/qhotkey_win.cpp)
   
-# ELSEIF (UNIX)
-# 	MESSAGE(STATUS "Now is UNIX-like OS's.")
-# 	find_package(X11 REQUIRED)
-#   find_package(Qt5X11Extras REQUIRED)
-#   include_directories(${X11_INCLUDE_DIR})
-#   set(Q_GLOBALSHOTCUT_LIBS ${Q_GLOBALSHOTCUT_LIBS} ${X11_LIBRARIES} Qt5::X11Extras)
-#   set(Q_GLOBALSHOTCUT_SRC_FILES ${Q_GLOBALSHOTCUT_SRC_FILES} QHotkey/qhotkey_x11.cpp)
-# ELSEIF (APPLE)
-# 	MESSAGE(STATUS "Now is Apple systens.")
-# ENDIF ()
+ ELSEIF (UNIX)
+        MESSAGE(STATUS "Now is UNIX-like OS's.")
+        find_package(X11 REQUIRED)
+   find_package(Qt5X11Extras REQUIRED)
+   include_directories(${X11_INCLUDE_DIR})
+   set(Q_GLOBALSHOTCUT_LIBS ${Q_GLOBALSHOTCUT_LIBS} ${X11_LIBRARIES} Qt5::X11Extras)
+   set(Q_GLOBALSHOTCUT_SRC_FILES ${Q_GLOBALSHOTCUT_SRC_FILES} QHotkey/qhotkey_x11.cpp)
+ ELSEIF (APPLE)
+        MESSAGE(STATUS "Now is Apple systens.")
+ ENDIF ()
 
-# MESSAGE(STSTUS "###################################")
+ MESSAGE(STSTUS "###################################")
 
-# add_library(qglobalshotcut SHARED ${Q_GLOBALSHOTCUT_SRC_FILES})
-# target_link_libraries(qglobalshotcut ${Q_GLOBALSHOTCUT_LIBS})
+ add_library(qglobalshotcut SHARED ${Q_GLOBALSHOTCUT_SRC_FILES})
+ target_link_libraries(qglobalshotcut ${Q_GLOBALSHOTCUT_LIBS})
 
 
 # 手动添加qrc文件，将qrc文件转换为*_qrc.cpp文件
@@ -66,6 +66,8 @@ set(qt_src_files
     src/ctableview.cpp
     src/mainwindow.cpp
     src/csqlquerymodel.cpp
+    src/setting.cpp
+    src/traymenu.cpp
     ${QRC_FILES}
     ${UI_FILES}
     ${MOC_FILES}
@@ -76,7 +78,7 @@ target_link_libraries(qmainwindow  Qt5::Widgets
     Qt5::Core 
     Qt5::Gui
     Qt5::Sql
-    # qglobalshotcut
+    qglobalshotcut
 )
 
 add_executable(ocr_qt src/main.cpp)
