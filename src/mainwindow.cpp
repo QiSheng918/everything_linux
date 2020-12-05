@@ -9,6 +9,7 @@
 #include <QHeaderView>
 #include <QMessageBox>
 
+
 #define Debug
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_sourceModel()
@@ -16,16 +17,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_sourceModel()
     setupUi();
 
     setWindowIcon(QIcon(":/everything_linux"));
-
     m_sourceModel = new CSqlQueryModel;
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(strDbName);
 
     file_qk = new QHotkey(QKeySequence("ctrl+j"), true);
-    connect(file_qk, SIGNAL(activated()), this, SLOT(show()));
-    close_qk = new QHotkey(QKeySequence("ctrl+w"), false);
-    connect(close_qk, SIGNAL(activated()), this, SLOT(hide()));
+    connect(file_qk, SIGNAL(activated()), this, SLOT(showMainwindow()));
 
+    close_qk=new QShortcut(this);
+    close_qk->setKey(QKeySequence("ctrl+w"));
+    connect(close_qk, SIGNAL(activated()), this, SLOT(hide()));
 
     pTrayMenu = new TrayMenu(this);
     connect(pTrayMenu, SIGNAL(updateDatabase()), this, SLOT(updateDatabase()));

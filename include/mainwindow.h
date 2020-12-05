@@ -17,6 +17,7 @@
 #include <QPoint>
 #include <QSystemTrayIcon>
 #include <QResizeEvent>
+#include <QShortcut>
 
 #include "csqlquerymodel.h"
 #include "ctableview.h"
@@ -68,16 +69,18 @@ private:
 
 private:
     CSqlQueryModel *m_sourceModel;
-    QSqlQuery *m_sqlQuery;
     QSqlDatabase m_db;
+    
+    QHotkey *file_qk;
+    QShortcut *close_qk;
+    QSystemTrayIcon *pSystemTray;
+    TrayMenu *pTrayMenu;
 
     /* settings */
     bool m_enableMatchCase;
     bool m_enableRegex;
     double scale_factor;
-    QHotkey *file_qk,*close_qk;
-    QSystemTrayIcon *pSystemTray;
-    TrayMenu *pTrayMenu;
+
 
     int init_tabview_column_size[4];
 
@@ -88,8 +91,7 @@ public:
     QHBoxLayout *horizontalLayout,*tabview_horizontalLayout;
     QLineEdit *keywordEdit;
     CTableView *tableView;
-    QMenuBar *menuBar;
-    QStatusBar *statusBar;
+
 
 private:
     int m_showContextRow;

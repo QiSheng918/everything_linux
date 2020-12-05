@@ -6,7 +6,7 @@ this software create a sql database to store the file and query the file accordi
 ## Build:
 
 1. git this repository to your workspace and cd the git directory
-
+    
 2. open a terminal run `mkdir build\`
 
 3. Next run `cmake ..`
@@ -23,5 +23,6 @@ this software create a sql database to store the file and query the file accordi
 
 ## Reference
 * modified in the base of repository[address of repository](https://github.com/ma3232335/EverythingForLinux)
+*
 * add global shotcut and statusbar display
 * remove passward input dialog
