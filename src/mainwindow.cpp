@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "traymenu.h"
+
 #include <QDebug>
 #include <QMessageBox>
 #include <QClipboard>
@@ -14,51 +14,104 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_sourceModel()
 {
     setupUi();
-    setWindowIcon(QIcon(":/everything_linux"));
-    m_sourceModel = new CSqlQueryModel;
 
+    setWindowIcon(QIcon(":/everything_linux"));
+
+    m_sourceModel = new CSqlQueryModel;
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(strDbName);
 
     file_qk = new QHotkey(QKeySequence("ctrl+j"), true);
     connect(file_qk, SIGNAL(activated()), this, SLOT(show()));
-
     close_qk = new QHotkey(QKeySequence("ctrl+w"), false);
     connect(close_qk, SIGNAL(activated()), this, SLOT(hide()));
 
-    pSystemTray = new QSystemTrayIcon(this);
-    TrayMenu *pTrayMenu = new TrayMenu(this);
-    pSystemTray->setContextMenu(pTrayMenu);
-    pSystemTray->setToolTip("Everything_linux");
-    pSystemTray->setIcon(QIcon(":/everything_linux"));
 
+    pTrayMenu = new TrayMenu(this);
     connect(pTrayMenu, SIGNAL(updateDatabase()), this, SLOT(updateDatabase()));
     connect(pTrayMenu, SIGNAL(quit()), qApp, SLOT(quit()));
     connect(pTrayMenu, SIGNAL(showMainwindow()), this, SLOT(showMainwindow()));
-    // connect(pSystemTray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(showMainwindow()));
 
+    pSystemTray = new QSystemTrayIcon(this);
+    pSystemTray->setContextMenu(pTrayMenu);
+    pSystemTray->setToolTip("Everything_linux");
+    pSystemTray->setIcon(QIcon(":/everything_linux"));
+    // connect(pSystemTray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(showMainwindow()));
     pSystemTray->show();
 
+    this->updateDatabase();
     if (connectDb())
     {
         loadSettings(1);
         initTable();
     }
-    // else
-    // {
-    //     QMessageBox::information(nullptr, "错误", "can't open the database");
-    // }
+    else {
+        QMessageBox::warning(this, "Open database failed", "Can't open the everything database");
+        qApp->quit();
+    }
 }
 
 MainWindow::~MainWindow()
 {
-    // delete m_sqlQuery;
+    if(centralWidget!=nullptr){
+        delete centralWidget;
+        centralWidget=nullptr;
+    }
+    if(verticalLayout!=nullptr){
+        delete verticalLayout;
+        verticalLayout=nullptr;
+    }
+    if(horizontalLayout!=nullptr){
+        delete horizontalLayout;
+        horizontalLayout=nullptr;
+    }
+    if(keywordEdit!=nullptr){
+        delete keywordEdit;
+        keywordEdit=nullptr;
+    }
+    if(tabview_horizontalLayout!=nullptr){
+        delete tabview_horizontalLayout;
+        tabview_horizontalLayout=nullptr;
+    }
+    if(verticalLayout!=nullptr){
+        delete verticalLayout;
+        verticalLayout=nullptr;
+    }
+    
+    if(m_sourceModel!=nullptr){
+        delete m_sourceModel;
+        m_sourceModel=nullptr;
+    }
+    if(file_qk!=nullptr){
+        delete file_qk;
+        file_qk=nullptr;
+    }
+    if(close_qk!=nullptr){
+        delete close_qk;
+        close_qk=nullptr;
+    }
+    if(pSystemTray!=nullptr){
+        delete pSystemTray;
+        pSystemTray=nullptr;
+    }
+    if(pTrayMenu!=nullptr){
+        delete pTrayMenu;
+        pTrayMenu=nullptr;
+    }
+
+
 }
 
 void MainWindow::setupUi()
 {
     scale_factor = QGuiApplication::primaryScreen()->geometry().width() / 1920.0;
+
     this->resize(int(1000 * scale_factor), int(750 * scale_factor));
+    init_tabview_column_size[0]=int(200*scale_factor);
+    init_tabview_column_size[1]=int(500*scale_factor);
+    init_tabview_column_size[2]=int(100*scale_factor);
+    init_tabview_column_size[3]=int(200*scale_factor);
+
     this->centralWidget = new QWidget(this);
 
     this->verticalLayout = new QVBoxLayout(centralWidget);
@@ -80,19 +133,11 @@ void MainWindow::setupUi()
     this->tableView = new CTableView(centralWidget);
 
     this->tableView->setObjectName(QString::fromUtf8("tableView"));
-    this->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    //    this->tableView->horizontalHeader()->set
+    // this->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     this->tabview_horizontalLayout->addWidget(tableView);
     this->verticalLayout->addLayout(tabview_horizontalLayout);
 
     this->setCentralWidget(centralWidget);
-
-    this->menuBar = new QMenuBar(this);
-    this->menuBar->setGeometry(QRect(0, 0, 700, 25));
-    this->setMenuBar(menuBar);
-
-    this->statusBar = new QStatusBar(this);
-    this->setStatusBar(statusBar);
 
     this->setWindowTitle(QApplication::translate("MainWindow", "Everything", 0));
 
@@ -121,7 +166,6 @@ bool MainWindow::reConnectDb()
     {
         m_db.close();
     }
-
     connectDb();
 
     return true;
@@ -146,11 +190,9 @@ bool MainWindow::initTable()
     m_sourceModel->setHeaderData(3, Qt::Horizontal, "Data Modified");
 
     tableView->setModel(m_sourceModel);
-    //    tableView->setSizeAdjustPolicy();
-    //    tableView->setColumnWidth(0, int(150*scale_factor));
-    //    tableView->setColumnWidth(1, int(300*scale_factor));
-    //    tableView->setColumnWidth(2, int(100*scale_factor));
-    //    tableView->setColumnWidth(3, int(200*scale_factor));
+    for(int i=0;i<4;i++){
+        tableView->setColumnWidth(i, init_tabview_column_size[i]);
+    }
     tableView->setStyleSheet("QTableView{border-style: none}"
                              "QTableView::item:selected{background: rgb(51,153,255)}");
 
@@ -304,11 +346,34 @@ void MainWindow::closeEvent(QCloseEvent *event)
     {
         QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
     }
-    event->ignore();
     this->hide();
+    event->ignore();
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+
+    int column_width_total=0;
+    for(int i=0;i<4;i++){
+        column_width_total+=tableView->columnWidth(i);
+    }
+    #ifdef Debug
+        qDebug()<<"resize";
+        qDebug()<<this->size();
+        qDebug()<<column_width_total;
+        qDebug()<<event->oldSize().width();
+    #endif
+    
+    double factor=this->size().width()/(1.0*column_width_total);
+    for(int i=0;i<4;i++){
+        tableView->setColumnWidth(i, int(tableView->columnWidth(i)*factor));
+    }
 }
 
 void MainWindow::updateDatabase(){
     QString cmd = "echo \"ss\" | sudo  -S  ./everything_updatedb";
-    system(cmd.toLocal8Bit().data());
+    if (system(cmd.toLocal8Bit().data()) != 0)
+    {
+        QMessageBox::warning(this, "Error update database", "Can't update the everything database");
+    }
 }

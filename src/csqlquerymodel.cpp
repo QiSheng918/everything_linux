@@ -69,7 +69,7 @@ QVariant CSqlQueryModel::timeValue(const time_t timep) const
 {
     struct tm *stTime = NULL;
     stTime = localtime(&timep);
-    return QString("%1/%2/%3 %4:%5")
+    return QString("   %1/%2/%3 %4:%5")
         .arg(stTime->tm_year+1900)
         .arg(stTime->tm_mon+1)
         .arg(stTime->tm_mday)
@@ -79,12 +79,12 @@ QVariant CSqlQueryModel::timeValue(const time_t timep) const
 
 QVariant CSqlQueryModel::sizeValue(const size_t size) const
 {
-    return QString("%1 KB").arg(size/1024.0, 0, 'f', 2);
+    return QString("%1 KB   ").arg(size/1024.0, 0, 'f', 2);
 }
 
 void CSqlQueryModel::setQuery ( const QString & query, const QSqlDatabase & db)
 {
-    qDebug() << query;
+    // qDebug() << query;
     QSqlQueryModel::setQuery(query, db);
     insertColumn(3);
 }

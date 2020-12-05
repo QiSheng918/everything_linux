@@ -16,11 +16,13 @@
 #include <QSqlError>
 #include <QPoint>
 #include <QSystemTrayIcon>
+#include <QResizeEvent>
 
 #include "csqlquerymodel.h"
 #include "ctableview.h"
 #include "QHotkey/qhotkey.h"
 #include "QHotkey/qhotkey_p.h"
+#include "traymenu.h"
 
 const QString strSelectSQL = "SELECT name, path, type FROM everything";
 const QString strWhereGlobWildcard = " WHERE name GLOB '*%1*'"; /* match case */
@@ -50,6 +52,7 @@ public slots:
     void openFilePath();
     void copyFullPath();
     void closeEvent(QCloseEvent *e);  //--关闭事件
+    void resizeEvent(QResizeEvent *e);
     void showMainwindow();
     void updateDatabase();
 
@@ -74,6 +77,9 @@ private:
     double scale_factor;
     QHotkey *file_qk,*close_qk;
     QSystemTrayIcon *pSystemTray;
+    TrayMenu *pTrayMenu;
+
+    int init_tabview_column_size[4];
 
 public:
     /* GUI widgets */
